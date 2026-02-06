@@ -1,47 +1,67 @@
-    // includes
+#include <iostream>
+#include <SFML/Graphics.hpp>
+#include <vector>
 
-    #include <iostream>
-    #include <SFML/Graphics.hpp>
-    #include <vector>
+using namespace std;
 
-    using namespace std;
+// variables
 
-    // variables
+int screenx = 800;
+int screeny = 600;
 
-    int screenx = 800;
-    int screeny = 600;
+sf::Vector2f temp = {0, 0};
 
-    sf::Vector2f temp = {0, 0};
+vector<sf::Vector2f> points = {};
 
-    vector<sf::Vector2f> points = {};
+sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
+    return a + t * (b - a);
+}
 
-    int main() {
+sf::Vector2f getBezierPoint(vector<sf::Vector2f> p, float t) {
+    while (p.size() > 1) {
+        vector<sf::Vector2f> next_points;
+        for (size_t i = 0; i < p.size() - 1; i++) {
+            next_points.push_back(lerp(p[i], p[i + 1], t));
+        }
+        p = next_points;
+    }
+    return p[0];
+}
+
+int main() {
     sf::RenderWindow window(sf::VideoMode(screenx, screeny), "BezZzier");
 
     while (window.isOpen())
     {
         window.clear(sf::Color::White);
 
-        // 1. Prepare the line path
         sf::VertexArray line(sf::LineStrip, points.size());
         for (size_t i = 0; i < points.size(); i++)
         {
             line[i].position = points[i];
-            line[i].color = sf::Color::Black;
+            line[i].color = sf::Color(200, 200, 200);
         }
-
-        // 2. Draw the line path once
         window.draw(line);
 
-        // 3. Draw the circles on top
+        if (points.size() >= 2) {
+            sf::VertexArray curve(sf::LineStrip);
+            for (float t = 0.f; t <= 1.f; t += 0.01f) {
+                sf::Vector2f cp = getBezierPoint(points, t);
+                curve.append(sf::Vertex(cp, sf::Color::Red));
+            }
+            window.draw(curve);
+        }
+
         for (size_t i = 0; i < points.size(); i++)
         {
             sf::CircleShape point(10.f);
             point.setFillColor(sf::Color::Black);
-            // Centering the circle on the line point
-            point.setPosition(points[i].x - 10.f, points[i].y - 10.f);
+            point.setOrigin(10.f, 10.f);
+            point.setPosition(points[i]);
             window.draw(point);
         }
+
+        // display window here
 
         sf::Event event;
         while (window.pollEvent(event))
@@ -51,12 +71,15 @@
 
             if(event.type == sf::Event::MouseButtonPressed) {
                 temp = sf::Vector2f(sf::Mouse::getPosition(window));
-                cout << "x: " << temp.x << " y: " << temp.y << endl;
+                cout << "x: " << to_string(temp.x) << " y: " << to_string(temp.y) << endl;
                 points.push_back(temp);
             }
         }
 
+        // reset window
+
         window.display();
+        
     }
 
     return 0;
