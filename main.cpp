@@ -6,8 +6,8 @@ using namespace std;
 
 // variables
 
-int screenx = 800;
-int screeny = 600;
+int screenx = 1920;
+int screeny = 1080;
 
 sf::Vector2f temp = {0, 0};
 
@@ -50,7 +50,7 @@ int main() {
                 curve.append(sf::Vertex(cp, sf::Color::Red));
             }
             window.draw(curve);
-        }
+        }   
 
         for (size_t i = 0; i < points.size(); i++)
         {
@@ -70,9 +70,19 @@ int main() {
                 window.close();
 
             if(event.type == sf::Event::MouseButtonPressed) {
-                temp = sf::Vector2f(sf::Mouse::getPosition(window));
-                cout << "x: " << to_string(temp.x) << " y: " << to_string(temp.y) << endl;
-                points.push_back(temp);
+                if(event.mouseButton.button == sf::Mouse::Left) {
+                    temp = sf::Vector2f(sf::Mouse::getPosition(window));
+                    cout << "mb1" << endl;
+                    points.push_back(temp);
+                }
+                else if (event.mouseButton.button == sf::Mouse::Right) {
+                    cout << "mb2" << endl;
+                    for (size_t i = 0; i < points.size(); i++) {
+                        if(sf::Mouse::getPosition(window) == points[i]) {
+                            // pass
+                        }
+                    }
+                }
             }
         }
 
