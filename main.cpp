@@ -18,9 +18,14 @@ int main() {
 
     while (window.isOpen())
     {
+        window.clear(sf::Color::White);
+        
         for (size_t i = 0; i < points.size(); i++)
         {
-            cout << "printed because of point" << to_string(i) << endl;
+            sf::CircleShape shape(10.f);
+            shape.setFillColor(sf::Color::Black);
+            shape.setPosition(points[i]);
+            window.draw(shape);
         }
 
         // display window here
@@ -32,13 +37,10 @@ int main() {
                 window.close();
         }
 
-
-        
-
         // reset window
 
-        window.clear(sf::Color::White);
         window.display();
+        
     }
 
     return 0;

@@ -1,1 +1,3 @@
-g++ -std=c++11 main.cpp -o bezzZier -lsfml-graphics -lsfml-window -lsfml-system
+all:
+	g++ -std=c++11 main.cpp -o bezzZier -lsfml-graphics -lsfml-window -lsfml-system
+	./bezzZier
