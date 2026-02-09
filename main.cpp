@@ -9,7 +9,7 @@ using namespace std;
 int screenx = 1920;
 int screeny = 1080;
 
-sf::Vector2f temp = {0, 0};
+sf::Vector2f tempmousepos = {0, 0};
 
 vector<sf::Vector2f> points = {};
 
@@ -33,6 +33,8 @@ int main() {
 
     while (window.isOpen())
     {
+        sf::Vector2f mousepos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+        
         window.clear(sf::Color::White);
 
         sf::VertexArray line(sf::LineStrip, points.size());
@@ -71,19 +73,24 @@ int main() {
 
             if(event.type == sf::Event::MouseButtonPressed) {
                 if(event.mouseButton.button == sf::Mouse::Left) {
-                    temp = sf::Vector2f(sf::Mouse::getPosition(window));
-                    cout << "mb1" << endl;
-                    points.push_back(temp);
+                    tempmousepos = sf::Vector2f(sf::Mouse::getPosition(window));
+                    points.push_back(tempmousepos);
                 }
                 else if (event.mouseButton.button == sf::Mouse::Right) {
-                    cout << "mb2" << endl;
                     for (size_t i = 0; i < points.size(); i++) {
-                        if(sf::Mouse::getPosition(window) == points[i]) {
-                            // pass
+                        if(abs(mousepos.x - points[i].x) < 10.f && abs(mousepos.y - points[i].y) < 10.f) {
+                            points.erase(points.begin() + i);
+                            break;
                         }
                     }
                 }
             }
+            if(event.type == sf::Event::KeyPressed) {
+                if(event.key.code == sf::Keyboard::R) {
+                    points.clear();
+                }
+            }
+
         }
 
         // reset window
