@@ -4,19 +4,22 @@
 
 using namespace std;
 
-// variables
-
+// screen settings
 int screenx = 1920;
 int screeny = 1080;
 
-sf::Vector2f tempmousepos = {0, 0};
+// storage for the curve currently being drawn
+vector<sf::Vector2f> tempcurve = {};
 
-vector<sf::Vector2f> points = {};
+// storage for all finished curves
+vector<vector<sf::Vector2f>> curves = {};
 
+// math for smooth lines
 sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
     return a + t * (b - a);
 }
 
+// recursive math to find bezier point
 sf::Vector2f getBezierPoint(vector<sf::Vector2f> p, float t) {
     while (p.size() > 1) {
         vector<sf::Vector2f> next_points;
@@ -37,33 +40,46 @@ int main() {
         
         window.clear(sf::Color::White);
 
-        sf::VertexArray line(sf::LineStrip, points.size());
-        for (size_t i = 0; i < points.size(); i++)
+        // draw all the permanent saved curves
+        for (const auto& saved_points : curves) {
+            if (saved_points.size() >= 2) {
+                sf::VertexArray saved_va(sf::LineStrip);
+                for (float t = 0.f; t <= 1.f; t += 0.01f) {
+                    sf::Vector2f cp = getBezierPoint(saved_points, t);
+                    saved_va.append(sf::Vertex(cp, sf::Color(100, 100, 100))); // grey for saved
+                }
+                window.draw(saved_va);
+            }
+        }
+
+        // draw helper lines for the active curve
+        sf::VertexArray line(sf::LineStrip, tempcurve.size());
+        for (size_t i = 0; i < tempcurve.size(); i++)
         {
-            line[i].position = points[i];
+            line[i].position = tempcurve[i];
             line[i].color = sf::Color(200, 200, 200);
         }
         window.draw(line);
 
-        if (points.size() >= 2) {
-            sf::VertexArray curve(sf::LineStrip);
+        // draw the active bezier curve in red
+        if (tempcurve.size() >= 2) {
+            sf::VertexArray curve_va(sf::LineStrip);
             for (float t = 0.f; t <= 1.f; t += 0.01f) {
-                sf::Vector2f cp = getBezierPoint(points, t);
-                curve.append(sf::Vertex(cp, sf::Color::Red));
+                sf::Vector2f cp = getBezierPoint(tempcurve, t);
+                curve_va.append(sf::Vertex(cp, sf::Color::Red));
             }
-            window.draw(curve);
+            window.draw(curve_va);
         }   
 
-        for (size_t i = 0; i < points.size(); i++)
+        // draw the control points for the active curve
+        for (size_t i = 0; i < tempcurve.size(); i++)
         {
             sf::CircleShape point(10.f);
             point.setFillColor(sf::Color::Black);
             point.setOrigin(10.f, 10.f);
-            point.setPosition(points[i]);
+            point.setPosition(tempcurve[i]);
             window.draw(point);
         }
-
-        // display window here
 
         sf::Event event;
         while (window.pollEvent(event))
@@ -72,31 +88,42 @@ int main() {
                 window.close();
 
             if(event.type == sf::Event::MouseButtonPressed) {
+                // left click to add points to active curve
                 if(event.mouseButton.button == sf::Mouse::Left) {
-                    tempmousepos = sf::Vector2f(sf::Mouse::getPosition(window));
-                    points.push_back(tempmousepos);
+                    tempcurve.push_back(mousepos);
                 }
+                // right click to delete points from active curve
                 else if (event.mouseButton.button == sf::Mouse::Right) {
-                    for (size_t i = 0; i < points.size(); i++) {
-                        if(abs(mousepos.x - points[i].x) < 10.f && abs(mousepos.y - points[i].y) < 10.f) {
-                            points.erase(points.begin() + i);
+                    for (size_t i = 0; i < tempcurve.size(); i++) {
+                        if(abs(mousepos.x - tempcurve[i].x) < 10.f && abs(mousepos.y - tempcurve[i].y) < 10.f) {
+                            tempcurve.erase(tempcurve.begin() + i);
                             break;
                         }
                     }
                 }
             }
+
             if(event.type == sf::Event::KeyPressed) {
+                // enter to save active curve and start a new one
+                if (event.key.code == sf::Keyboard::Enter) {
+                    if (!tempcurve.empty()) {
+                        curves.push_back(tempcurve);
+                        tempcurve.clear();
+                    }
+                }
+                // delete key to wipe the current active curve
+                if(event.key.code == sf::Keyboard::Delete) {
+                    tempcurve.clear();
+                }
+                // r key to wipe everything
                 if(event.key.code == sf::Keyboard::R) {
-                    points.clear();
+                    tempcurve.clear();
+                    curves.clear();
                 }
             }
-
         }
 
-        // reset window
-
         window.display();
-        
     }
 
     return 0;
