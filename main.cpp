@@ -88,9 +88,9 @@ int main() {
                 window.close();
 
             if(event.type == sf::Event::MouseButtonPressed) {
-                // left click to add points to active curve
-                if(event.mouseButton.button == sf::Mouse::Left) {
-                    tempcurve.push_back(mousepos);
+                // for selecting a placed curve
+                if (event.mouseButton.button == sf::Mouse::Right) {
+
                 }
                 // right click to delete points from active curve
                 else if (event.mouseButton.button == sf::Mouse::Right) {
